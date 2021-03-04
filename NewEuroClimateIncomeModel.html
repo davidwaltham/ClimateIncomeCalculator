@@ -1,0 +1,286 @@
+<html>
+	<head>
+	</head>
+	<body>
+		<div>
+					<img src = https://community.citizensclimate.org/content/resources/logos/173498_UpdatedLogo_CCLsq_011818.png  alt = "CCL Logo" width="160" height="160" >	
+					<h1>Climate Income Calculator</h1>
+					<h2><a href="https://eu.citizensclimatelobby.org/">Citizens' Climate Lobby, Europe</a></h2>
+					<h2>March 2021</h2>
+		</div>								
+		<form name="webform" >				
+			<div><h2>Country</h2>
+				<select name="country" oninput="setCountry()" >
+					<option value = 0 >Austria</option>
+					<option value = 1 >Belgium</option>
+					<option value = 2 >Bulgaria</option>
+					<option value = 3 >Croatia</option>
+					<option value = 4 >Cyprus</option>
+					<option value = 5 >Czech Republic</option>
+					<option value = 6 >Denmark</option>
+					<option value = 7 >Estonia</option>
+					<option value = 8 >Finland</option>
+					<option value = 9 >France</option>
+					<option value = 10 >Germany</option>
+					<option value = 11 >Greece</option>
+					<option value = 12 >Hungary</option>
+					<option value = 13 >Ireland</option>
+					<option value = 14 >Italy</option>
+					<option value = 15 >Latvia</option>
+					<option value = 16 >Lithuania</option>
+					<option value = 17 >Luxembourg</option>
+					<option value = 18 >Malta</option>
+					<option value = 19 >Netherlands</option>
+					<option value = 20 >Poland</option>
+					<option value = 21 >Portugal</option>
+					<option value = 22 >Romania</option>
+					<option value = 23 >Slovak Republic</option>
+					<option value = 24 >Slovenia</option>
+					<option value = 25 >Spain</option>
+					<option value = 26 >Sweden</option>
+				</select>
+			</div>
+			<div><h2>Number of Adults in Household</h2>
+				<input type="radio" name="adults" onclick="oneAdult()" >1
+				<input type="radio" name="adults" onclick="twoAdult()" >2
+			</div>
+			<div><h2>Number of Children</h2>
+					<input type="radio" name="children" onclick="noChild()" >0
+					<input type="radio" name="children" onclick="oneChild()" >1
+					<input type="radio" name="children" onclick="twoChild()" >2+
+			</div>
+			<div><h2>Annual Income After Taxes</h2>
+					<input type="radio" name="income" onclick="band1()">&euro;5,000-&euro;10,000
+					<input type="radio" name="income" onclick="band2()">&euro;11,000-&euro;20,000
+					<input type="radio" name="income" onclick="band3()">&euro;21,000-&euro;30,000
+					<input type="radio" name="income" onclick="band4()">&euro;31,000-&euro;40,000
+					<input type="radio" name="income" onclick="band5()">&euro;41,000-&euro;60,000
+					<input type="radio" name="income" onclick="band6()">&euro;61,000-&euro;100,000
+					<input type="radio" name="income" onclick="band7()">&euro;101,000-&euro;150,000
+					<input type="radio" name="income" onclick="band8()">&euro;151,000-&euro;250,000
+			</div>
+			<div><h2>Income Change</h2>
+				Approximately <span id=sign> </span>&euro;<span id=result>X</span> per month
+			</div>
+			<div>
+					<input type="radio" name="when" onclick="now()" checked="checked">Now
+					<input type="radio" name="when" onclick="oneYear()">Next year
+					<input type="radio" name="when" onclick="fiveYears()">5 years time
+			</div>
+			<div><h2>How is this calculated?</h2>
+					Estimated Climate Income: &euro;<span id=income>X</span> per month					
+					<br>Estimated pollution charges: &euro;<span id=cost>X</span> per month
+			</div>
+		
+			<script type="text/javascript">			
+		
+		
+//************************************
+// global variables and their defaults
+//************************************
+
+//household parameters
+var nAdult = 3.0;		//number of adults in household. =3 flags that it's not set yet by user
+var nChild = 3.0;		//number of children in household. =3 flags that it's not set yet by user
+var income = 0.0;		//household total income. =0 flags that it's not set yet by user
+
+//carbon price parameters
+var start = 15.0;		//initial price
+var increment = 10.0;	//annual increment
+var pzero = 400.0;		//price needed to eliminate emissions
+var year = 0;			//year to assess. Default is at start.
+
+//arrays to store individual country data
+var nc = 27;					//number of countries
+var ic = 0;						//default to Austria (i.e. 1st country on list)
+avEmissions = new Array(nc);	//average emissions per person(tonnes/year)
+avIncome = new Array(nc);		//average income(Euro/year)
+avEmissions[0] = 8.05;
+avEmissions[1] = 9.1;
+avEmissions[2] = 6.39;
+avEmissions[3] = 4.55;
+avEmissions[4] = 6.21;
+avEmissions[5] = 10.27;
+avEmissions[6] = 5.86;
+avEmissions[7] = 17.1;
+avEmissions[8] = 8.54;
+avEmissions[9] = 4.93;
+avEmissions[10] = 9.13;
+avEmissions[11] = 6.14;
+avEmissions[12] = 5.53;
+avEmissions[13] = 7.91;
+avEmissions[14] = 5.76;
+avEmissions[15] = 4.14;
+avEmissions[16] = 4.85;
+avEmissions[17] = 16.18;
+avEmissions[18] = 2.38;
+avEmissions[19] = 9.48;
+avEmissions[20] = 8.72;
+avEmissions[21] = 5;
+avEmissions[22] = 4.11;
+avEmissions[23] = 7.01;
+avEmissions[24] = 7.66;
+avEmissions[25] = 5.86;
+avEmissions[26] = 4.37;
+avIncome[0] = 43200;
+avIncome[1] = 40300;
+avIncome[2] = 12400;				//a guess!
+avIncome[3] = 12400;
+avIncome[4] = 12400;				//a guess!
+avIncome[5] = 12600;
+avIncome[6] = 53100;
+avIncome[7] = 15000;
+avIncome[8] = 37700;
+avIncome[9] = 34200;
+avIncome[10] = 36200;
+avIncome[11] = 15700;
+avIncome[12] = 9500;
+avIncome[13] = 46900;
+avIncome[14] = 26500;
+avIncome[15] = 13200;
+avIncome[16] = 12100;
+avIncome[17] = 56900;
+avIncome[18] = 28600;
+avIncome[19] = 42400;
+avIncome[20] = 10900;
+avIncome[21] = 15400;
+avIncome[22] = 10400;
+avIncome[23] = 12400;
+avIncome[24] = 22100;
+avIncome[25] = 25000;
+avIncome[26] = 34500;
+
+calculate();
+
+//*****************Functions*************************
+
+//reset parameters and recalculate when buttons are pushed
+function oneAdult(){
+	nAdult = 1;
+	calculate();
+}
+function twoAdult(){
+	nAdult=2;
+	calculate();
+}
+function noChild(){
+	nChild=0;
+	calculate();
+}
+function oneChild(){
+	nChild=1;
+	calculate()
+}
+function twoChild(){
+	nChild=2;
+	calculate();
+}
+function band1(){
+	income=7500;
+	calculate();
+}
+function band2(){
+	income=15000;
+	calculate();
+}
+function band3(){
+	income=25000;
+	calculate();
+}
+function band4(){
+	income=35000;
+	calculate();
+}
+function band5(){
+	income=50000;
+	calculate();
+}
+function band6(){
+	income=80000;
+	calculate();
+}
+function band7(){
+	income=125000;
+	calculate();
+}
+function band8(){
+	income=200000;
+	calculate();
+}
+function now(){
+	year = 0;
+	calculate();
+}
+function oneYear(){
+	year = 1;
+	calculate()
+}
+function fiveYears(){
+	year = 5;
+	calculate();
+}
+function setCountry() {
+	ic = parseInt(document.webform.country.value);
+	calculate();	
+}	
+
+//calculation routines
+function calculate(){
+
+//only calculate if user has set all the buttons required
+	if ( nAdult<3 && nChild<3 && income>0 ){
+	
+//get data for current country
+		percapita = avEmissions[ic];
+		intense = avIncome[ic];
+	
+//carbon price and corresponding emission reduction factor
+		var price = start + year*increment;
+		var pFact = pReduction(price);
+		
+//annual dividend per person
+		var dividend = avEmissions[ic]*pFact*price;
+		
+//annual costs for this income level
+		var costs = dividend*income/avIncome[ic];
+	
+//annual dividend for household
+		var houseSize = nAdult + 0.5*nChild;
+		var houseDividend = houseSize*dividend;
+	
+//display monthly results
+		display(houseDividend/12,costs/12);
+	}
+	
+}
+function pReduction(priceNow){
+//calculate reduction in emissions due to price
+	var pFact = 0.5 + 0.5*Math.cos(Math.PI*priceNow/pzero);
+	if ( priceNow > pzero ) pFact = 0.0;
+	if ( pFact < 0.0 ) pFact = 0.0;
+	return pFact;
+}
+
+//display results
+function display(dividend,cost){	
+
+//display dividend and cost
+	document.getElementById("income").innerHTML=dividend.toFixed(0);		
+	document.getElementById("cost").innerHTML=cost.toFixed(0);
+	
+//display overall result with correct sign
+	result = dividend - cost
+	if ( result >= 0.0 ){
+		document.getElementById("sign").innerHTML="+";
+		document.getElementById("result").innerHTML=result.toFixed(0);
+	} else {
+		document.getElementById("sign").innerHTML="-";
+		result = -result;
+		document.getElementById("result").innerHTML=result.toFixed(0);
+	}
+}
+
+			</script>	
+		</form>	
+	</body>
+</html>
